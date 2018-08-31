@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using Android.Content;
+using Android.Runtime;
 using Plugin.Iconize;
 using Xamarin.Forms;
 using Xamarin.Forms.Platform.Android;
@@ -41,15 +42,31 @@ namespace Plugin.Iconize
             // Intentionally left blank
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IconLabelRenderer"/> class.
+        /// </summary>
+        /// <param name="javaReference"></param>
+        /// <param name="transfer"></param>
+        /// <remarks>Fix for Xamarin.Forms 3.1.0.697729 (not needed with Xamarin.Forms 3.0.0.561731)</remarks>
+        [Obsolete]
+        public IconLabelRenderer(IntPtr javaReference, JniHandleOwnership transfer) { }
+
         /// <inheritdoc />
         protected override void OnElementChanged(ElementChangedEventArgs<Label> e)
         {
-            base.OnElementChanged(e);
+            try
+            {
+                base.OnElementChanged(e);
 
-            if (Label == null)
-                return;
+                if (Label == null)
+                    return;
 
-            UpdateText();
+                UpdateText();
+            }
+            catch (Exception)
+            {
+                // Do nothing
+            }
         }
 
         /// <inheritdoc />
@@ -73,6 +90,10 @@ namespace Plugin.Iconize
         protected override void OnAttachedToWindow()
         {
             base.OnAttachedToWindow();
+
+            //if (Element == null || Control == null)
+            //    return;
+
 #if USE_FASTRENDERERS
             TextChanged += OnTextChanged;
 #else
@@ -83,6 +104,9 @@ namespace Plugin.Iconize
         /// <inheritdoc />
         protected override void OnDetachedFromWindow()
         {
+            if (Element == null)
+                return;
+
 #if USE_FASTRENDERERS
             TextChanged -= OnTextChanged;
 #else
